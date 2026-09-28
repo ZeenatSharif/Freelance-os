@@ -64,11 +64,17 @@ export default function App() {
     setForm({ name:"", client:"", amount:"" });
   };
 
+  // === YEH 4 BOXES AB 100% WORKING HAIN ===
   const filteredInvoices = invoiceFilter==="all"? invoices : invoices.filter(i=>i.status===invoiceFilter);
   const totalEarned = invoices.filter(i=>i.status==="paid").reduce((a,b)=>a+b.amount,0);
   const invoicesDue = invoices.filter(i=>i.status!=="paid").reduce((a,b)=>a+b.amount,0);
+  const avgDailyRate = invoices.length > 0? Math.round((totalEarned + invoicesDue) / Math.max(projects.length, 1)) : 520;
   const hourlyRate = 65;
   const earnedNow = ((seconds/3600) * hourlyRate).toFixed(2);
+
+  const updateProgress = (id, newProgress) => {
+    setProjects(projects.map(p => p.id===id? {...p, progress: parseInt(newProgress)} : p));
+  };
 
   if(!user){
     return (
@@ -90,7 +96,7 @@ export default function App() {
       <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
       <div style={{ width:'240px', background:'#121214', color:'white', padding:'20px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
         <div>
-          <div style={{ marginBottom:'40px' }}><h2 style={{ margin:0, fontSize:'18px', color:'white' }}>Freelance<span style={{ color:'#E85D2A' }}>OS</span></h2><p style={{ fontSize:'10px', color:'#888', fontFamily:'DM Mono' }}>V2.4 · WORKSPACE</p></div>
+          <div style={{ marginBottom:'40px' }}><h2 style={{ margin:0, fontSize:'18px' }}>Freelance<span style={{ color:'#E85D2A' }}>OS</span></h2><p style={{ fontSize:'10px', color:'#888', fontFamily:'DM Mono' }}>V2.4 · WORKSPACE</p></div>
           {[
             { label:'Dashboard' }, { label:'Projects' }, { label:'Invoices', badge: invoices.filter(i=>i.status!=='paid').length }, { label:'Clients' }, { label:'Time' }
           ].map(item=>(
@@ -126,7 +132,7 @@ export default function App() {
               <div style={{ padding:'20px', borderRight:'1px solid #EAE0D5', borderBottom:'1px solid #EAE0D5' }}><div style={{ fontSize:'10px', color:'#999', fontFamily:'DM Mono' }}>TOTAL EARNED</div><div style={{ fontSize:'32px', fontWeight:700 }}>${totalEarned.toLocaleString()}</div></div>
               <div style={{ padding:'20px', borderBottom:'1px solid #EAE0D5' }}><div style={{ fontSize:'10px', color:'#999', fontFamily:'DM Mono' }}>ACTIVE PROJECTS</div><div style={{ fontSize:'32px', fontWeight:700 }}>{projects.length}</div></div>
               <div style={{ padding:'20px', borderRight:'1px solid #EAE0D5' }}><div style={{ fontSize:'10px', color:'#999', fontFamily:'DM Mono' }}>INVOICES DUE</div><div style={{ fontSize:'32px', fontWeight:700 }}>${invoicesDue.toLocaleString()}</div></div>
-              <div style={{ padding:'20px' }}><div style={{ fontSize:'10px', color:'#999', fontFamily:'DM Mono' }}>AVG. DAILY RATE</div><div style={{ fontSize:'32px', fontWeight:700 }}>$520</div></div>
+              <div style={{ padding:'20px' }}><div style={{ fontSize:'10px', color:'#999', fontFamily:'DM Mono' }}>AVG. PROJECT VALUE</div><div style={{ fontSize:'32px', fontWeight:700 }}>${avgDailyRate.toLocaleString()}</div></div>
             </div>
             <div style={{ background:'#FFFDF9', border:'1px solid #EAE0D5' }}>
               <div style={{ padding:'16px 20px', borderBottom:'1px solid #EAE0D5', fontWeight:600, fontSize:'13px' }}>Active Projects</div>
@@ -139,6 +145,26 @@ export default function App() {
             </div>
           </>
         )}
+        {tab==="Projects" &&
+          <div>
+            <h2>Projects - {projects.length}</h2>
+            <p style={{ fontSize:'12px', color:'#888', fontFamily:'DM Mono' }}>Update progress to see changes on Dashboard poll lines</p>
+            <div style={{ background:'#FFFDF9', border:'1px solid #EAE0D5', marginTop:'16px' }}>
+              {projects.map(p=>
+                <div key={p.id} style={{ padding:'16px', borderBottom:'1px solid #eee' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'8px' }}>
+                    <span style={{ fontWeight:600 }}>{p.name} - {p.client}</span>
+                    <span>{p.progress}% | ${p.amount}</span>
+                  </div>
+                  <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
+                    <input type="range" min="0" max="100" value={p.progress} onChange={(e)=> updateProgress(p.id, e.target.value)} style={{ flex:1 }} />
+                    <button onClick={()=>setProjects(projects.filter(x=>x.id!==p.id))} style={{ background:'#ff4444', color:'white', border:'none', borderRadius:'4px', padding:'4px 8px', fontSize:'11px' }}>Delete</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        }
         {tab==="Invoices" && (
           <div>
             <h2 style={{ margin:0 }}>Invoices</h2>
@@ -163,7 +189,7 @@ export default function App() {
                 <p style={{ fontSize:'13px' }}>Client: {selectedInvoice.client} | Amount: ${selectedInvoice.amount} | Status: {selectedInvoice.status}</p>
                 <div style={{ display:'flex', gap:'10px', marginTop:'12px' }}>
                   <button onClick={()=>generatePDF(selectedInvoice)} style={{ padding:'10px 20px', background:'#E85D2A', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:600 }}>Download PDF</button>
-                  <button onClick={()=>{ setInvoices(invoices.map(i=> i.id===selectedInvoice.id? {...i, status: i.status==='paid'?'pending':'paid'}: i)); setSelectedInvoice(null); }} style={{ padding:'10px 20px', background:'#121214', color:'white', border:'none', borderRadius:'8px', cursor:'pointer' }}>Toggle Status</button>
+                  <button onClick={()=>{ setInvoices(invoices.map(i=> i.id===selectedInvoice.id? {...i, status: i.status==='paid'?'pending':'paid'}: i)); setSelectedInvoice(null); }} style={{ padding:'10px 20px', background:'#121214', color:'white', border:'none', borderRadius:'8px', cursor:'pointer' }}>Toggle Paid/Pending</button>
                   <button onClick={()=>setSelectedInvoice(null)} style={{ padding:'10px 20px', background:'white', border:'1px solid #ddd', borderRadius:'8px', cursor:'pointer' }}>Close</button>
                 </div>
               </div>
@@ -186,7 +212,6 @@ export default function App() {
             </div>
           </div>
         )}
-        {tab==="Projects" && <div><h2>Projects - {projects.length}</h2><div style={{ background:'#FFFDF9', border:'1px solid #EAE0D5', marginTop:'16px' }}>{projects.map(p=> <div key={p.id} style={{ padding:'16px', borderBottom:'1px solid #eee', display:'flex', justifyContent:'space-between' }}><span>{p.name} - {p.client}</span><span>{p.progress}% | ${p.amount}</span><button onClick={()=>setProjects(projects.filter(x=>x.id!==p.id))} style={{ background:'#ff4444', color:'white', border:'none', borderRadius:'4px', padding:'4px 8px' }}>Delete</button></div>)}</div></div>}
         {tab==="Clients" && <div><h2>Clients</h2>{[...new Set(projects.map(p=>p.client))].map(c=> <div key={c} style={{ padding:'12px', background:'white', border:'1px solid #eee', marginBottom:'8px' }}>{c} - Total Billed: ${projects.filter(p=>p.client===c).reduce((a,b)=>a+b.amount,0)}</div>)}</div>}
       </div>
     </div>
