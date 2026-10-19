@@ -1,3 +1,4 @@
+import Invoices from "./pages/Invoices";
 import { useState, useEffect } from "react";
 
 export default function App() {
@@ -55,6 +56,20 @@ export default function App() {
     win.document.write(`<html><head><title>Invoice #${inv.id}</title><style>body{font-family:sans-serif;padding:40px}.header{display:flex;justify-content:space-between}table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border:1px solid #ddd;padding:10px}</style></head><body><div class="header"><div><h2>FreelanceOS</h2><p>Invoice #${inv.id}</p></div><div><p><b>From:</b> ${user.name} (${user.email})</p><p><b>To:</b> ${inv.client}</p><p><b>Date:</b> ${inv.date}</p></div></div><table><tr><th>Description</th><th>Amount</th></tr><tr><td>${inv.items}</td><td>$${inv.amount}</td></tr></table><h2>Total: $${inv.amount} - ${inv.status.toUpperCase()}</h2><script>window.print()</script></body></html>`);
     win.document.close();
   };
+  const toggleInvoiceStatus = (invoice) => {
+  setInvoices((previous) =>
+    previous.map((item) =>
+      item.id === invoice.id
+        ? {
+            ...item,
+            status: item.status === "paid" ? "pending" : "paid",
+          }
+        : item
+    )
+  );
+
+  setSelectedInvoice(null);
+};
 
   const [form, setForm] = useState({ name:"", client:"", amount:"" });
   const addProject = () => {
@@ -126,6 +141,9 @@ export default function App() {
               <div>
                 <h1 style={{ margin:0, fontSize:'22px', lineHeight:'1.2' }}>{greeting}, {user.name}</h1>
                 <p style={{ fontSize:'12px', color:'#888', fontFamily:'DM Mono', marginTop:'6px' }}>{todayDate}</p>
+                <p style={{ fontSize:'12px', color:'#E85D2A' }}>
+                Your freelance journey starts here!
+                </p>
               </div>
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', border:'1px solid #EAE0D5', background:'#FFFDF9', marginBottom:'24px' }}>
@@ -165,37 +183,19 @@ export default function App() {
             </div>
           </div>
         }
-        {tab==="Invoices" && (
-          <div>
-            <h2 style={{ margin:0 }}>Invoices</h2>
-            <p style={{ fontSize:'12px', color:'#888', fontFamily:'DM Mono', marginTop:'4px' }}>Manage and download client invoices</p>
-            <div style={{ display:'flex', gap:'8px', margin:'16px 0' }}>
-              {['all','pending','overdue','paid'].map(f=> (
-                <button key={f} onClick={()=>setInvoiceFilter(f)} style={{ padding:'6px 14px', borderRadius:'20px', border:'1px solid #ddd', background: invoiceFilter===f?'#121214':'white', color: invoiceFilter===f?'white':'#333', textTransform:'capitalize', cursor:'pointer', fontSize:'12px' }}>{f} ({f==='all'?invoices.length:invoices.filter(i=>i.status===f).length})</button>
-              ))}
-            </div>
-            <div style={{ background:'#FFFDF9', border:'1px solid #EAE0D5' }}>
-              {filteredInvoices.length===0? <div style={{ padding:'20px', textAlign:'center', color:'#999' }}>No invoices found</div> :
-                filteredInvoices.map(inv=>(
-                  <div key={inv.id} onClick={()=>setSelectedInvoice(inv)} style={{ padding:'16px', borderBottom:'1px solid #eee', display:'flex', justifyContent:'space-between', cursor:'pointer', background: selectedInvoice?.id===inv.id?'#FFF0E8':'transparent' }}>
-                    <span style={{ flex:1 }}>{inv.client} - {inv.items}</span><span style={{ fontFamily:'DM Mono' }}>${inv.amount}</span>
-                    <span style={{ marginLeft:'12px', padding:'4px 10px', borderRadius:'12px', fontSize:'11px', background: inv.status==='paid'?'#d4edda': inv.status==='overdue'?'#f8d7da':'#fff3cd' }}>{inv.status}</span>
-                  </div>
-                ))}
-            </div>
-            {selectedInvoice && (
-              <div style={{ marginTop:'20px', padding:'20px', background:'white', border:'2px solid #E85D2A', borderRadius:'12px' }}>
-                <h3 style={{ margin:0 }}>Invoice #{selectedInvoice.id}</h3>
-                <p style={{ fontSize:'13px' }}>Client: {selectedInvoice.client} | Amount: ${selectedInvoice.amount} | Status: {selectedInvoice.status}</p>
-                <div style={{ display:'flex', gap:'10px', marginTop:'12px' }}>
-                  <button onClick={()=>generatePDF(selectedInvoice)} style={{ padding:'10px 20px', background:'#E85D2A', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:600 }}>Download PDF</button>
-                  <button onClick={()=>{ setInvoices(invoices.map(i=> i.id===selectedInvoice.id? {...i, status: i.status==='paid'?'pending':'paid'}: i)); setSelectedInvoice(null); }} style={{ padding:'10px 20px', background:'#121214', color:'white', border:'none', borderRadius:'8px', cursor:'pointer' }}>Toggle Paid/Pending</button>
-                  <button onClick={()=>setSelectedInvoice(null)} style={{ padding:'10px 20px', background:'white', border:'1px solid #ddd', borderRadius:'8px', cursor:'pointer' }}>Close</button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        ,
+       {tab === "Invoices" && (
+        <Invoices
+        invoices={invoices}
+        invoiceFilter={invoiceFilter}
+        setInvoiceFilter={setInvoiceFilter}
+        selectedInvoice={selectedInvoice}
+        setSelectedInvoice={setSelectedInvoice}
+        generatePDF={generatePDF}
+        toggleInvoiceStatus={toggleInvoiceStatus}
+      />
+      )}
+
         {tab==="Time" && (
           <div>
             <h2 style={{ margin:0 }}>Time Tracker</h2>
