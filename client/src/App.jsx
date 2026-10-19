@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import Login from "./pages/Login";
-
+import Dashboard from "./pages/dashboard";
+import Projects from "./pages/project";
+import Login from "./pages/login";
 export default function App() {
   const [user, setUser] = useState(() => {
     const s = localStorage.getItem("freelanceos_user");
@@ -76,7 +77,9 @@ export default function App() {
   const updateProgress = (id, newProgress) => {
     setProjects(projects.map(p => p.id===id? {...p, progress: parseInt(newProgress)} : p));
   };
-
+const deleteProject = (id) => {
+  setProjects(projects.filter(p => p.id !== id));
+};
  if (!user) {
   return (
     <Login
@@ -116,51 +119,25 @@ export default function App() {
       </div>
 
       <div style={{ flex:1, padding:'30px 36px', overflowY:'auto' }}>
-        {tab==="Dashboard" && (
-          <>
-            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'30px' }}>
-              <div>
-                <h1 style={{ margin:0, fontSize:'22px', lineHeight:'1.2' }}>{greeting}, {user.name}</h1>
-                <p style={{ fontSize:'12px', color:'#888', fontFamily:'DM Mono', marginTop:'6px' }}>{todayDate}</p>
-              </div>
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', border:'1px solid #EAE0D5', background:'#FFFDF9', marginBottom:'24px' }}>
-              <div style={{ padding:'20px', borderRight:'1px solid #EAE0D5', borderBottom:'1px solid #EAE0D5' }}><div style={{ fontSize:'10px', color:'#999', fontFamily:'DM Mono' }}>TOTAL EARNED</div><div style={{ fontSize:'32px', fontWeight:700 }}>${totalEarned.toLocaleString()}</div></div>
-              <div style={{ padding:'20px', borderBottom:'1px solid #EAE0D5' }}><div style={{ fontSize:'10px', color:'#999', fontFamily:'DM Mono' }}>ACTIVE PROJECTS</div><div style={{ fontSize:'32px', fontWeight:700 }}>{projects.length}</div></div>
-              <div style={{ padding:'20px', borderRight:'1px solid #EAE0D5' }}><div style={{ fontSize:'10px', color:'#999', fontFamily:'DM Mono' }}>INVOICES DUE</div><div style={{ fontSize:'32px', fontWeight:700 }}>${invoicesDue.toLocaleString()}</div></div>
-              <div style={{ padding:'20px' }}><div style={{ fontSize:'10px', color:'#999', fontFamily:'DM Mono' }}>AVG. PROJECT VALUE</div><div style={{ fontSize:'32px', fontWeight:700 }}>${avgDailyRate.toLocaleString()}</div></div>
-            </div>
-            <div style={{ background:'#FFFDF9', border:'1px solid #EAE0D5' }}>
-              <div style={{ padding:'16px 20px', borderBottom:'1px solid #EAE0D5', fontWeight:600, fontSize:'13px' }}>Active Projects</div>
-              {projects.map(p=>(
-                <div key={p.id} style={{ padding:'18px 20px', borderBottom:'1px solid #F0E6D9', display:'flex', justifyContent:'space-between' }}>
-                  <div style={{ flex:1 }}><div style={{ fontWeight:600, fontSize:'14px' }}>{p.name}</div><div style={{ fontSize:'11px', color:'#999', fontFamily:'DM Mono' }}>{p.client}</div><div style={{ marginTop:'10px', height:'4px', background:'#F0E6D9', width:'90%' }}><div style={{ width:`${p.progress}%`, height:'100%', background: p.progress>70?'#E85D2A':'#121212' }}></div></div></div>
-                  <div style={{ textAlign:'right' }}><div style={{ fontFamily:'DM Mono', fontWeight:600, fontSize:'13px' }}>${p.amount.toLocaleString()}</div><div style={{ fontSize:'10px', color:'#999', fontFamily:'DM Mono' }}>{p.progress}%</div></div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-        {tab==="Projects" &&
-          <div>
-            <h2>Projects - {projects.length}</h2>
-            <p style={{ fontSize:'12px', color:'#888', fontFamily:'DM Mono' }}>Update progress to see changes on Dashboard poll lines</p>
-            <div style={{ background:'#FFFDF9', border:'1px solid #EAE0D5', marginTop:'16px' }}>
-              {projects.map(p=>
-                <div key={p.id} style={{ padding:'16px', borderBottom:'1px solid #eee' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'8px' }}>
-                    <span style={{ fontWeight:600 }}>{p.name} - {p.client}</span>
-                    <span>{p.progress}% | ${p.amount}</span>
-                  </div>
-                  <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
-                    <input type="range" min="0" max="100" value={p.progress} onChange={(e)=> updateProgress(p.id, e.target.value)} style={{ flex:1 }} />
-                    <button onClick={()=>setProjects(projects.filter(x=>x.id!==p.id))} style={{ background:'#ff4444', color:'white', border:'none', borderRadius:'4px', padding:'4px 8px', fontSize:'11px' }}>Delete</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        }
+       {tab === "Dashboard" && (
+  <Dashboard
+    user={user}
+    greeting={greeting}
+    todayDate={todayDate}
+    totalEarned={totalEarned}
+    projects={projects}
+    invoicesDue={invoicesDue}
+    avgDailyRate={avgDailyRate}
+  />
+)}
+        {tab === "Projects" && (
+  <Projects
+    projects={projects}
+    updateProgress={updateProgress}
+    deleteProject={deleteProject}
+  />
+)}
+            
         {tab==="Invoices" && (
           <div>
             <h2 style={{ margin:0 }}>Invoices</h2>
