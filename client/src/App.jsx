@@ -1,4 +1,5 @@
 import Invoices from "./pages/Invoices";
+import Clients from "./pages/Clients";
 import { useState, useEffect } from "react";
 
 export default function App() {
@@ -212,7 +213,7 @@ export default function App() {
             </div>
           </div>
         )}
-        {tab==="Clients" && <div><h2>Clients</h2>{[...new Set(projects.map(p=>p.client))].map(c=> <div key={c} style={{ padding:'12px', background:'white', border:'1px solid #eee', marginBottom:'8px' }}>{c} - Total Billed: ${projects.filter(p=>p.client===c).reduce((a,b)=>a+b.amount,0)}</div>)}</div>}
+        {tab==="Clients" && <Clients projects={projects} invoices={invoices} />}
       </div>
     </div>
   );
