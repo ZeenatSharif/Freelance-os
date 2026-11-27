@@ -2,7 +2,9 @@ name: FreelanceOS CI-CD Pipeline
 
 on:
   push:
+    branches: [development, master]
   pull_request:
+    branches: [development, master]
 
 permissions:
   contents: read
