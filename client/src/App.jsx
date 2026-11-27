@@ -1,4 +1,7 @@
+import Invoices from "./pages/Invoices";
+import Clients from "./pages/Clients";
 import { useState, useEffect } from "react";
+import Login from "./pages/Login";
 
 export default function App() {
   const [user, setUser] = useState(() => {
@@ -64,6 +67,20 @@ export default function App() {
     win.document.write(`<html><head><title>Invoice #${inv.id}</title><style>body{font-family:sans-serif;padding:40px}.header{display:flex;justify-content:space-between}table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border:1px solid #ddd;padding:10px}</style></head><body><div class="header"><div><h2>FreelanceOS</h2><p>Invoice #${inv.id}</p></div><div><p><b>From:</b> ${user.name} (${user.email})</p><p><b>To:</b> ${inv.client}</p><p><b>Date:</b> ${inv.date}</p></div></div><table><tr><th>Description</th><th>Amount</th></tr><tr><td>${inv.items}</td><td>$${inv.amount}</td></tr></table><h2>Total: $${inv.amount} - ${inv.status.toUpperCase()}</h2><script>window.print()</script></body></html>`);
     win.document.close();
   };
+  const toggleInvoiceStatus = (invoice) => {
+  setInvoices((previous) =>
+    previous.map((item) =>
+      item.id === invoice.id
+        ? {
+            ...item,
+            status: item.status === "paid" ? "pending" : "paid",
+          }
+        : item
+    )
+  );
+
+  setSelectedInvoice(null);
+};
 
   const [form, setForm] = useState({ name: "", client: "", amount: "" });
   const addProject = () => {

@@ -1,0 +1,106 @@
+name: FreelanceOS CI-CD Pipeline
+
+on:
+  push:
+    branches: [Development, master]
+  pull_request:
+    branches: [Development, master]
+
+permissions:
+  contents: read
+
+jobs:
+
+  # STAGE 1: CONTINUOUS INTEGRATION
+  continuous-integration:
+    name: Build and Test FreelanceOS
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./client
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Linting
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm test -- --run
+
+      - name: Create Production Build
+        run: npm run build
+
+  # STAGE 2: DEPLOY TO STAGING
+  deploy-staging:
+    name: Deploy to Staging
+    needs: continuous-integration
+    if: github.ref == 'refs/heads/Development' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./client
+
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Deploy to Vercel Preview
+        run: |
+          npx vercel@latest pull --yes --environment=preview --token=$VERCEL_TOKEN
+          npx vercel@latest build --token=$VERCEL_TOKEN
+          npx vercel@latest deploy --prebuilt --token=$VERCEL_TOKEN
+
+  # STAGE 3: DEPLOY TO PRODUCTION
+  deploy-production:
+    name: Deploy to Production
+    needs: continuous-integration
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./client
+
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Deploy to Vercel Production
+        run: |
+          npx vercel@latest pull --yes --environment=production --token=$VERCEL_TOKEN
+          npx vercel@latest build --prod --token=$VERCEL_TOKEN
+          npx vercel@latest deploy --prebuilt --prod --token=$VERCEL_TOKEN         
