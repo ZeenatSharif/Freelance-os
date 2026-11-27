@@ -1,0 +1,13 @@
+{
+  "settings": {
+    "createdAt": 1790614634088,
+    "framework": "vite",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": "client",
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}
